@@ -16,23 +16,28 @@ class Blockchain():
         return sha.hexdigest()
 
 def createGenesisBlock():
+    sql = f'INSERT INTO blocks (id, time, data, hash) VALUES (0, "{str(datetime.datetime.now())}", "Genesis Block", "{0}")'
+    con.execute(sql)
+    con.commit()
     return Blockchain(0, datetime.datetime.now(), 'Genesis Block', 0)
 
 def nextBlock(lastBlock):
-    index = lastBlock.index + 1
+    getLastId = 'SELECT MAX(id) FROM blocks'
+    cur.execute(getLastId)
+    lastBlockData = cur.fetchall()
+    index = lastBlockData[0][0] + 1
     timestamp = datetime.datetime.now()
     data = "Conium"
     hash = lastBlock.hash
-    sql = f'INSERT INTO blocks (id, time, data, hash) VALUES ({index}, "{str(timestamp)}", "{data}", "{str(hash)}")'
+    sql = f'INSERT INTO blocks (id, time, data, hash) VALUES ({index}, "{str(timestamp)}", "{data}", "{hash}")'
     con.execute(sql)
     con.commit()
     return Blockchain(index, timestamp, data, hash)
 
 blockchain = [createGenesisBlock()]
 previousBlock = blockchain[0]
-numOfBlocks = 5
 
-for i in range(0, numOfBlocks):
+while True:
     blockToAdd = nextBlock(previousBlock)
     blockchain.append(blockToAdd)
     previousBlock = blockToAdd
