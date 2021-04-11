@@ -1,7 +1,10 @@
-import hashlib, datetime
+import hashlib, datetime, sqlite3
 
-class Block:
-    def __init__(self, index, timestamp, data, previousHash):
+con = sqlite3.connect('site.db')
+cur = con.cursor()
+
+class Blockchain():
+    def __init__(self, index, timestamp, data, previousHash):  #change limit
         self.index = index
         self.timestamp = timestamp
         self.data = data
@@ -13,18 +16,21 @@ class Block:
         return sha.hexdigest()
 
 def createGenesisBlock():
-    return Block(0, datetime.datetime.now(), "Genesis Block", "0")
+    return Blockchain(0, datetime.datetime.now(), 'Genesis Block', 0)
 
 def nextBlock(lastBlock):
     index = lastBlock.index + 1
     timestamp = datetime.datetime.now()
-    data = "Hey! I'm block " + str(index)
+    data = "Conium"
     hash = lastBlock.hash
-    return Block(index, timestamp, data, hash)
+    sql = f'INSERT INTO blocks (id, time, data, hash) VALUES ({index}, "{str(timestamp)}", "{data}", "{str(hash)}")'
+    con.execute(sql)
+    con.commit()
+    return Blockchain(index, timestamp, data, hash)
 
 blockchain = [createGenesisBlock()]
 previousBlock = blockchain[0]
-numOfBlocks = 20
+numOfBlocks = 5
 
 for i in range(0, numOfBlocks):
     blockToAdd = nextBlock(previousBlock)
